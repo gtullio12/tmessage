@@ -6,23 +6,14 @@ from typing import Annotated, Any
 
 import typer
 from dotenv import load_dotenv
-from langchain.agents import create_agent
 from langchain_nebius import ChatNebius
-from langchain_tavily import TavilySearch
 from rich.console import Console
-from rich.panel import Panel
-from rich.text import Text
 
 load_dotenv()
 
 app = typer.Typer(add_completion=False)
 console = Console()
-
-SYSTEM_PROMPT = """You are a concise research assistant.
-Use Tavily search when you need current or factual web information.
-Answer the user's question directly and include source URLs when available.
-"""
-
+chat_model = ChatNebius(model="moonshotai/Kimi-K2.6")
 
 def require_env(name: str, instructions: str) -> None:
     if os.getenv(name):
@@ -30,7 +21,6 @@ def require_env(name: str, instructions: str) -> None:
     console.print(f"[bold red]Missing {name}[/bold red]")
     console.print(instructions)
     raise typer.Exit(code=1)
-
 
 def message_text(message: Any) -> str:
     """Extract streamed text from a LangChain message or message chunk."""
@@ -47,70 +37,47 @@ def message_text(message: Any) -> str:
         return "".join(parts)
     return ""
 
+def extract_info_from_description(description: Annotated[str, typer.Argument(help="Pasted job description,title, and company text, if available")]) -> dict:
 
-def flush() -> None:
-    console.file.flush()
+    EXTRACTION_SYSTEM_PROMT = """
+    I'm giving you a copy-pasted job description section in LinkedIn,
+    please parse the entire string and extract the company name, job title, and job description
+    if it's listed. With the job description split it into 2 lists, one is key_facts which should
+    be a list of job responsibilities (close to paraphrasing) — each key_fact should describe a
+    concrete responsibility or activity, not a characterization of how the person works — and
+    persona_inference which is a list of strings of how this person communicates/operates
+    (hands-on, technical, builds from scratch, decision maker), don't assume for this one,
+    if you can't find something then return an empty list. Respond with ONLY valid JSON
+    """
 
+    response = chat_model.invoke([
+        {"role": "system", "content": EXTRACTION_SYSTEM_PROMT},
+        {"role": "user", "content": description}
+        ])
 
-def truncate(value: Any, limit: int = 900) -> str:
-    text = str(value).strip()
-    if len(text) <= limit:
-        return text
-    return text[:limit].rstrip() + "..."
-
-
-def print_tool_call(name: str, args: Any) -> None:
-    console.print()
-    console.print(
-            Panel(
-                Text(truncate(args, limit=700)),
-                title=f"Tool call: {name}",
-                border_style="yellow",
-                )
-            )
-
-
-def format_tool_result(content: Any) -> str:
     try:
-        payload = json.loads(content) if isinstance(content, str) else content
+        response = json.loads(message_text(response))
+
+        # USER has to enter company name, otherwise EXIT
+        if (response['company_name'] is None):
+            print("company: None. Please input a company")
+            raise typer.Exit(code=1)
+
+        return response 
     except json.JSONDecodeError:
-        return truncate(content)
-
-    if not isinstance(payload, dict) or "results" not in payload:
-        return truncate(payload)
-
-    lines = [f"Query: {payload.get('query', '')}", ""]
-    for index, result in enumerate(payload.get("results", [])[:5], start=1):
-        title = result.get("title", "Untitled")
-        url = result.get("url", "")
-        snippet = " ".join(result.get("content", "").split())
-        lines.append(f"{index}. {title}")
-        lines.append(f"   {url}")
-        if snippet:
-            lines.append(f"   {truncate(snippet, limit=220)}")
-        lines.append("")
-    return "\n".join(lines).strip()
-
-
-def print_tool_result(message: Any) -> None:
-    name = getattr(message, "name", None) or "tool"
-    content = format_tool_result(getattr(message, "content", ""))
-    console.print()
-    console.print(
-            Panel(
-                Text(content),
-                title=f"Tool result: {name}",
-                border_style="yellow",
-                )
-            )
+        print("Failed to parse extraction response as JSON:")
+        print(response.content)
+        raise typer.Exit(code=1)
 
 
 @app.command()
 def main(name: Annotated[str, typer.Argument(help="Person's first and last name")], 
          description: Annotated[str, typer.Argument(help="Pasted job description,title, and company text, if available")]) -> None:
+    # Now we need to extract the company, title, and optionally the job description
 
-    print(f"Name: {name}")
-    print(f"Title: {description}")
+    parsed_description = extract_info_from_description(description)
+
+    print(parsed_description)
 
 
 if __name__ == "__main__":

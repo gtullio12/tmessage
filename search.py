@@ -17,7 +17,6 @@ load_dotenv()
 
 app = typer.Typer(add_completion=False)
 console = Console()
-chat_model = ChatNebius(model="moonshotai/Kimi-K2.6")
 
 def require_env(name: str, instructions: str) -> None:
     if os.getenv(name):
@@ -43,6 +42,8 @@ def message_text(message: Any) -> str:
 
 def extract_info_from_description(description: Annotated[str, typer.Argument(help="Pasted job description,title, and company text, if available")]) -> dict:
 
+    text_extraction_model = ChatNebius(model="Qwen/Qwen3-30B-A3B-Instruct-2507")
+
     # Now we need to extract the company, title, and optionally the job description
     EXTRACTION_SYSTEM_PROMT = """
     I'm giving you a copy-pasted job description section in LinkedIn,
@@ -55,7 +56,7 @@ def extract_info_from_description(description: Annotated[str, typer.Argument(hel
     if you can't find something then return an empty list. Respond with ONLY valid JSON
     """
 
-    response = chat_model.invoke([
+    response = text_extraction_model.invoke([
         {"role": "system", "content": EXTRACTION_SYSTEM_PROMT},
         {"role": "user", "content": description}
         ])
@@ -96,6 +97,9 @@ def search_relevant_resources(relevant_title: str, company_name: str) -> Any:
 
 # Takes in a unstructured title -> And extracts out only the relevant bits. 
 def title_extraction(title: str) -> str:
+
+    title_extraction_model = ChatNebius(model="Qwen/Qwen3-30B-A3B-Instruct-2507")
+
     TITLE_RELEVANCE_PROMPT = """
     Given this job title, identify the specific area of AI/technology focus, if any,
     that would be most relevant to a company that builds a web search API for AI agents.
@@ -103,13 +107,16 @@ def title_extraction(title: str) -> str:
     Respond with a short phrase (2-5 words) or "none" if nothing is clearly relevant.
     """
 
-    response = chat_model.invoke([
+    response = title_extraction_model.invoke([
         {"role": "system", "content": TITLE_RELEVANCE_PROMPT},
         {"role": "user", "content": title}
         ])
     return message_text(response)
 
 def create_message(name: str, company_name: str, job_title: str, key_facts_text: list[str], persona_text: list[str], results_text) -> str:
+
+    message_model = ChatNebius(model="deepseek-ai/DeepSeek-V3.2-fast")
+
     CREATE_MESSAGE_PROMPT="""
     Please write an outbound LinkedIn message. This is the very first message to someone
     I connected with. The goal is to reach someone who would be interested in Tavily for
@@ -158,7 +165,7 @@ def create_message(name: str, company_name: str, job_title: str, key_facts_text:
     "search_results": results_text,
     })
     
-    response = chat_model.invoke([
+    response = message_model.invoke([
         {"role": "system", "content": CREATE_MESSAGE_PROMPT},
         {"role": "user", "content": user_content},
     ])
@@ -179,6 +186,7 @@ def main(name: Annotated[str, typer.Argument(help="Person's first and last name"
 
 
     parsed_description = extract_info_from_description(description)
+    print(parsed_description)
 
     console.print(
             Columns([
@@ -194,7 +202,7 @@ def main(name: Annotated[str, typer.Argument(help="Person's first and last name"
     print(json.dumps(relevant_resources, indent=2))
 
     message = create_message(name, parsed_description['company_name'], parsed_description['job_title'], 
-                             parsed_description['key_facts'], parsed_description['persona_inference'], relevant_resources)
+                             parsed_description['job_description']['key_facts'], parsed_description['job_description']['persona_inference'], relevant_resources)
 
     print(message)
 

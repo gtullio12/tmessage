@@ -20,6 +20,11 @@ load_dotenv()
 app = typer.Typer(add_completion=False)
 console = Console()
 
+# Open example messages and save results locally
+with open('example_messages.txt') as f:
+    templates = [msg.strip() for msg in f.read().split("---") if msg.strip()]
+example_templates = "\n\n---\n\n".join(templates)
+
 def print_search_results(results: dict) -> None:
     for r in results['results']:
         content = f"{r['url']}\n\n{r['content']}"
@@ -136,10 +141,13 @@ def create_message(name: str, company_name: str, job_title: str, key_facts_text:
 
     message_model = ChatNebius(model="deepseek-ai/DeepSeek-V3.2-fast")
 
-    CREATE_MESSAGE_PROMPT="""
+    CREATE_MESSAGE_PROMPT=f"""
     Please write an outbound LinkedIn message. This is the very first message to someone
     I connected with. The goal is to reach someone who would be interested in Tavily for
     AI-related projects.
+
+    Match this tone and style exactly: 
+    {example_templates}
     
     I will give you: the person's name, company name, job title, key_facts (concrete
     responsibilities/activities about this person), persona_inference (how this person
@@ -163,10 +171,10 @@ def create_message(name: str, company_name: str, job_title: str, key_facts_text:
        persona_inference, or search results.
     
     Output format: respond with ONLY valid JSON, no markdown, no preamble, in this shape:
-    {
+    {{
       "message": "the LinkedIn message text",
       "sources_used": ["url1", "url2"]
-    }
+    }}
     
     The message should be under 100 words, written in a natural, conversational tone —
     not salesy, no exclamation points, no buzzwords like "synergy" or "leverage." End with

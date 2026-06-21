@@ -1,0 +1,196 @@
+Hey {name} — thanks for connecting!
+
+I'm on the User Success team here at dbt Labs. I came across your role and saw that you lead the data engineering team at {company}, and that you've been working with Databricks and Stored Procedures.
+
+Curious if you've ever looked at using dbt alongside Databricks? A lot of teams move that direction to get away from long, hard-to-test SQL scripts and to bring more structure, documentation, and orchestration into their workflow.
+
+If it makes sense, happy to set up a quick, high-level chat to see what your current process looks like and whether dbt could be a fit.
+
+---
+
+Hey {name} — nice to connect! I'm on the account management team here at dbt Labs.
+
+If your team's been exploring dbt or curious about how it fits into your data stack, I'd be happy to set up a quick demo and help answer any questions you might have.
+
+– Garret
+
+---
+
+Hey {name} — thanks for connecting,
+
+I saw that you were following dbt Labs so thought I'd reach out. I'm on the user success team that supports {company} at dbt Labs. So just wanted to connect to see if you or your team were maybe thinking of using dbt for transformations and if you wanted to sync up to discuss.
+
+Let me know what you think. Happy to be a resource for you.
+
+Cheers,
+Garret
+
+---
+
+Hi {name} — thanks for connecting,
+
+I'm the platform specialist aligned with {company} here at dbt Labs. I noticed your data engineering team has been exploring dbt recently and wanted to reach out.
+
+From my conversations with other analytics teams, a common challenge is limited visibility and data quality — often leaving analysts dependent on engineering teams for transformations. Many organizations adopt dbt to standardize workflows, improve trust in their data, and empower analysts to move faster.
+
+If that sounds relevant for your team, I'd be happy to set up some time in the coming weeks to discuss how others in similar environments are approaching it.
+
+Best,
+Garret
+
+---
+
+Hi {name} — thanks for connecting,
+
+Noticed {company} is on Databricks and that your team has been looking into dbt—always interesting to see how teams are approaching that.
+
+Curious what's been driving the interest from the team. A lot of Databricks teams we talk to are usually thinking about standardizing transformations, improving collaboration, or making workflows easier to manage as things scale.
+
+Happy to compare notes or share what we've been seeing across similar teams if helpful.
+
+—Garret
+
+---
+
+Hi {name} — thanks for connecting,
+
+Noticed {company} is on Snowflake and that your team has been looking into dbt—always interesting to see how teams are approaching that.
+
+Curious what's been driving the interest from the team. A lot of Snowflake teams we talk to are usually thinking about standardizing transformations, improving collaboration, or just making things easier to manage at scale.
+
+Happy to compare notes or share what we've been seeing across similar teams if helpful.
+
+—Garret
+
+---
+
+Hi {name} — thanks for connecting,
+
+Noticed {company} is using dbt Core—so wanted to reach out and connect with you.
+
+One area that's been coming up more lately is around making metrics consistently available for downstream tools, especially AI use cases. A lot of teams are fine on the transformation side, but run into friction when it comes to defining and maintaining a semantic layer on their own.
+
+Was curious if that's something your team has thought about or run into at all.
+
+If so, happy to setup a brief convo around this.
+
+Cheers,
+Garret
+
+---
+
+Hey {name} — thanks for connecting!
+
+Saw that some of the teams over at {company} were using dbt Core, so wanted to reach out and introduce myself.
+
+I'm on the customer side at dbt Labs and would love to offer a quick "health check" sometime — essentially just a short conversation around how you're currently using dbt, see if there are any opportunities to help optimize the setup, and share a few newer platform features that might be relevant for the team.
+
+No pressure at all — would love to get your perspective in the coming weeks if helpful.
+
+---
+
+Hey {name} — thanks for connecting,
+
+I noticed that some folks at {company} had been exploring dbt recently, and I wanted to reach out. I work on the dbt team and help data engineering teams streamline their data transformations, adopt to software engineering best practices, and get consistent metrics across analytics and data science.
+
+Would love to hear how your team is approaching data transformations and see if there's any way dbt could help. Happy to work around your schedule for a quick chat.
+
+Thanks,
+Garret
+
+---
+
+Hey {name},
+
+I support {company} on dbt platform and wanted to reach out.
+
+My team and I have been meeting with dbt platform users we support to answer questions, walk through new feature releases, and make sure everyone is getting the most value out of dbt. We also have resources we can share, and our Solutions Engineers have been joining these conversations to help dive deeper where needed.
+
+Would you be open to a quick discussion? If so, I'm happy to send over an invite for a short call.
+
+---
+
+Hey {name} — thanks for connecting,
+
+I'm on the user success team that covers {company} here at dbt Labs. I saw that you were exploring dbt recently so wanted to connect with you.
+
+If you needed help navigating dbt or needed to see a demo of the platform, happy to set something up.
+
+Cheers,
+Garret
+
+---
+
+Hey {name} — thanks for connecting,
+
+I'm the platform specialist aligned with {company} here at dbt Labs. Nice to meet you! I saw from my team's notes that your team had looked into dbt and even met with us a little while back.
+
+Just wanted to reach out because the platform has changed a lot over the past year — and if you'd be open to connecting to talk through what's new and whether it could be useful for your team.
+
+Let me know what you think.
+
+Thanks,
+Garret
+
+---
+
+Hey {name}, just following up with you. Would love to sync up with you in the next few weeks to discuss.
+
+---
+
+Hey {name},
+
+Just wanted to check in one more time — I'd love to hear how things are going now and what's been driving the renewed interest. Even a quick 20–30 min chat could be a good way to explore if dbt could fit back into your workflows.
+
+Would you be open to connecting?
+
+Thanks,
+Garret
+
+---
+
+Hey {name},
+
+Just wanted to check in one more time — I'd love to hear how things are going now. Even a quick 20–30 min chat could be a good way to explore if dbt could fit into your workflows.
+
+Would you be open to connecting?
+
+Thanks,
+Garret
+
+---
+
+Hey {name},
+
+Just wanted to check in one more time — I'd love to hear how things are going now and get your perspective.
+
+Would you be open to connecting?
+
+Thanks,
+Garret
+
+---
+
+Hey {name},
+
+Nice to meet you! I'm on the user success team that oversees {company}.
+
+Saw that you went to one of our webinars recently — so wanted to connect with you. If the team was exploring a possible dbt implementation, I'd be happy to set up some time to chat and show a tailored demo of the platform or help answer any questions you might have.
+
+Let me know if that's something you'd be interested in. Happy to work around your schedule.
+
+Thanks,
+Garret
+
+---
+
+Hey {name},
+
+Nice to meet you! I'm on the user success team that oversees {company} here at dbt Labs. I saw that you were starting to explore dbt recently — so wanted to reach out and connect with you.
+
+If you or the team was looking into possibly using dbt for data transformations — I'd be more than happy to setup some time to chat on your use case, help answer any questions you might have, and show a tailored demo of the platform.
+
+Let me know if that's something you'd be interested in. Happy to work around your schedule.
+
+Thanks,
+Garret

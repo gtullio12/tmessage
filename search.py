@@ -116,6 +116,8 @@ def search_relevant_resources(relevant_title: str, company_name: str) -> Any:
             end_date= today.strftime("%Y-%m-%d"))
 
     result = title_specific_search.invoke(f"{company_name} {relevant_title}")
+    if (len(result['results']) == 0):
+        console.print("\n[bold red]0 Search Results Found[/bold red]")
     return result
 
 

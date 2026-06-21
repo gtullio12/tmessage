@@ -11,12 +11,25 @@ from dotenv import load_dotenv
 from langchain_nebius import ChatNebius
 from rich.console import Console
 from rich.panel import Panel
+from rich.text import Text
 from rich.columns import Columns
+from rich.pretty import pprint
 
 load_dotenv()
 
 app = typer.Typer(add_completion=False)
 console = Console()
+
+def print_search_results(results: dict) -> None:
+    for r in results['results']:
+        content = f"{r['url']}\n\n{r['content']}"
+        console.print(
+            Panel(
+                Text(content),
+                title=f"[bold yellow]{r['title']}[/bold yellow]",
+                border_style="yellow",
+            )
+        )
 
 def require_env(name: str, instructions: str) -> None:
     if os.getenv(name):
@@ -41,6 +54,7 @@ def message_text(message: Any) -> str:
     return ""
 
 def extract_info_from_description(description: Annotated[str, typer.Argument(help="Pasted job description,title, and company text, if available")]) -> dict:
+    console.print("\n[bold yellow]Extracting person info...[/bold yellow]")
 
     text_extraction_model = ChatNebius(model="Qwen/Qwen3-30B-A3B-Instruct-2507")
 
@@ -64,7 +78,7 @@ def extract_info_from_description(description: Annotated[str, typer.Argument(hel
     try:
         response = json.loads(message_text(response))
 
-        print(json.dumps(response, indent=2))
+        pprint(response)
 
         # USER has to enter company name, otherwise EXIT
         if (response['company_name'] is None):
@@ -97,6 +111,8 @@ def search_relevant_resources(relevant_title: str, company_name: str) -> Any:
 
 # Takes in a unstructured title -> And extracts out only the relevant bits. 
 def title_extraction(title: str) -> str:
+    console.print("\n[bold yellow]Extracting relevant title bits...[/bold yellow]")
+
 
     title_extraction_model = ChatNebius(model="Qwen/Qwen3-30B-A3B-Instruct-2507")
 
@@ -111,9 +127,12 @@ def title_extraction(title: str) -> str:
         {"role": "system", "content": TITLE_RELEVANCE_PROMPT},
         {"role": "user", "content": title}
         ])
+    pprint(response.content)
     return message_text(response)
 
 def create_message(name: str, company_name: str, job_title: str, key_facts_text: list[str], persona_text: list[str], results_text) -> str:
+
+    console.print("\n[bold yellow]Generating Message...[/bold yellow]")
 
     message_model = ChatNebius(model="deepseek-ai/DeepSeek-V3.2-fast")
 
@@ -154,8 +173,6 @@ def create_message(name: str, company_name: str, job_title: str, key_facts_text:
     a low-pressure ask (e.g., open to a quick chat) rather than a hard pitch.
     """
 
-    print('creating message now...')
-
     user_content = json.dumps({
     "name": name,
     "company_name": company_name,
@@ -186,7 +203,6 @@ def main(name: Annotated[str, typer.Argument(help="Person's first and last name"
 
 
     parsed_description = extract_info_from_description(description)
-    print(parsed_description)
 
     console.print(
             Columns([
@@ -199,12 +215,11 @@ def main(name: Annotated[str, typer.Argument(help="Person's first and last name"
     relevant_title = title_extraction(parsed_description['job_title'])
 
     relevant_resources = search_relevant_resources(relevant_title, parsed_description['company_name'])
-    print(json.dumps(relevant_resources, indent=2))
+    print_search_results(relevant_resources)
 
     message = create_message(name, parsed_description['company_name'], parsed_description['job_title'], 
                              parsed_description['job_description']['key_facts'], parsed_description['job_description']['persona_inference'], relevant_resources)
-
-    print(message)
+    console.print(message['message'], markup=False)
 
 
 if __name__ == "__main__":

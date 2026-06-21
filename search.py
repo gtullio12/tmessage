@@ -214,6 +214,14 @@ def create_message(name: str, company_name: str, job_title: str, key_facts_text:
 def main(name: Annotated[str, typer.Argument(help="Person's first and last name")], 
          description: Annotated[str, typer.Argument(help="Pasted job description,title, and company text, if available")]) -> None:
 
+    require_env(
+        "TAVILY_API_KEY",
+        "Create one at https://app.tavily.com, then run: export TAVILY_API_KEY='tvly-...'",
+    )
+    require_env(
+        "NEBIUS_API_KEY",
+        "Create one at https://tokenfactory.nebius.com, then run: export NEBIUS_API_KEY='...'",
+    )
 
     parsed_description = extract_info_from_description(description)
 

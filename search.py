@@ -20,6 +20,12 @@ load_dotenv()
 app = typer.Typer(add_completion=False)
 console = Console()
 
+
+# Define all models, use faster/cheaper models for basic text parsing and more complex for making customized message
+text_extraction_model = ChatNebius(model="Qwen/Qwen3-30B-A3B-Instruct-2507")
+title_extraction_model = ChatNebius(model="Qwen/Qwen3-30B-A3B-Instruct-2507")
+message_model = ChatNebius(model="deepseek-ai/DeepSeek-V3.2-fast")
+
 # Open example messages and save results locally
 with open('example_messages.txt') as f:
     templates = [msg.strip() for msg in f.read().split("---") if msg.strip()]
@@ -61,7 +67,6 @@ def message_text(message: Any) -> str:
 def extract_info_from_description(description: Annotated[str, typer.Argument(help="Pasted job description,title, and company text, if available")]) -> dict:
     console.print("\n[bold yellow]Extracting person info...[/bold yellow]")
 
-    text_extraction_model = ChatNebius(model="Qwen/Qwen3-30B-A3B-Instruct-2507")
 
     # Now we need to extract the company, title, and optionally the job description
     EXTRACTION_SYSTEM_PROMT = """
@@ -119,7 +124,6 @@ def title_extraction(title: str) -> str:
     console.print("\n[bold yellow]Extracting relevant title bits...[/bold yellow]")
 
 
-    title_extraction_model = ChatNebius(model="Qwen/Qwen3-30B-A3B-Instruct-2507")
 
     TITLE_RELEVANCE_PROMPT = """
     Given this job title, identify the specific area of AI/technology focus, if any,
@@ -139,7 +143,6 @@ def create_message(name: str, company_name: str, job_title: str, key_facts_text:
 
     console.print("\n[bold yellow]Generating Message...[/bold yellow]")
 
-    message_model = ChatNebius(model="deepseek-ai/DeepSeek-V3.2-fast")
 
     CREATE_MESSAGE_PROMPT=f"""
     Please write an outbound LinkedIn message. This is the very first message to someone

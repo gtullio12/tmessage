@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from typing import Annotated, Any
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -20,8 +21,6 @@ load_dotenv()
 
 app = typer.Typer(add_completion=False)
 console = Console()
-
-
 
 # Open example messages and save results locally
 with open('example_messages.txt') as f:
@@ -218,10 +217,13 @@ def create_message(name: str, company_name: str, job_title: str, key_facts_text:
 
 
 @app.command()
-def main(name: Annotated[str, typer.Argument(help="Person's first and last name")], 
-         description: Annotated[str, typer.Argument(help="Pasted job description,title, and company text, if available")]) -> None:
+def main() -> None:
 
     setup_api_keys()
+
+    name = typer.prompt("Name")
+    console.print("Paste LinkedIn description, then press Ctrl+D when done:")
+    description = sys.stdin.read()
 
     parsed_description = extract_info_from_description(description)
 

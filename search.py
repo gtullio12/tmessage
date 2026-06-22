@@ -221,29 +221,34 @@ def main() -> None:
 
     setup_api_keys()
 
-    name = typer.prompt("Name")
-    console.print("Paste LinkedIn description, then press Ctrl+D when done:")
-    description = sys.stdin.read()
+    while True:
 
-    parsed_description = extract_info_from_description(description)
+        name = typer.prompt("Name")
+        console.print("Paste LinkedIn description, then press Ctrl+D when done:")
+        description = sys.stdin.read()
 
-    console.print(
-            Columns([
-                Panel.fit(name, title="Person", border_style="cyan"),
-                Panel.fit(parsed_description["job_title"], title="Title", border_style="cyan"),
-                ])
-            )
-    console.rule("[bold blue]Generating Message")
+        parsed_description = extract_info_from_description(description)
 
-    relevant_title = title_extraction(parsed_description['job_title'])
+        console.print(
+                Columns([
+                    Panel.fit(name, title="Person", border_style="cyan"),
+                    Panel.fit(parsed_description["job_title"], title="Title", border_style="cyan"),
+                    ])
+                )
+        console.rule("[bold blue]Generating Message")
 
-    relevant_resources = search_relevant_resources(relevant_title, parsed_description['company_name'])
-    print_search_results(relevant_resources)
+        relevant_title = title_extraction(parsed_description['job_title'])
 
-    message = create_message(name, parsed_description['company_name'], parsed_description['job_title'], 
-                             parsed_description['job_description']['key_facts'], parsed_description['job_description']['persona_inference'], relevant_resources)
-    console.print(message['message'], markup=False)
+        relevant_resources = search_relevant_resources(relevant_title, parsed_description['company_name'])
+        print_search_results(relevant_resources)
 
+        message = create_message(name, parsed_description['company_name'], parsed_description['job_title'], 
+                                 parsed_description['job_description']['key_facts'], parsed_description['job_description']['persona_inference'], relevant_resources)
+        console.print(message['message'], markup=False)
+
+        another = typer.confirm("Generate another message?")
+        if not another:
+            break
 
 if __name__ == "__main__":
     app()

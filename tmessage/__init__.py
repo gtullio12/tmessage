@@ -6,6 +6,7 @@ import sys
 from typing import Annotated, Any
 from datetime import datetime, timedelta
 from pathlib import Path
+from importlib.resources import files
 
 from langchain_tavily import TavilySearch
 import typer
@@ -23,7 +24,7 @@ app = typer.Typer(add_completion=False)
 console = Console()
 
 # Open example messages and save results locally
-with open('example_messages.txt') as f:
+with files("tmessage").joinpath("example_messages.txt").open() as f:
     templates = [msg.strip() for msg in f.read().split("---") if msg.strip()]
 example_templates = "\n\n---\n\n".join(templates)
 

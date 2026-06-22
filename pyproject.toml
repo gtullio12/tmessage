@@ -14,3 +14,9 @@ py-modules = ["tmessage"]
 
 [project.scripts]
 tmessage = "tmessage:app"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.setuptools.package-data]
+tmessage = ["example_messages.txt"]

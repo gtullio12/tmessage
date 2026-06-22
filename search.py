@@ -4,6 +4,7 @@ import json
 import os
 from typing import Annotated, Any
 from datetime import datetime, timedelta
+from pathlib import Path
 
 from langchain_tavily import TavilySearch
 import typer
@@ -21,15 +22,25 @@ app = typer.Typer(add_completion=False)
 console = Console()
 
 
-# Define all models, use faster/cheaper models for basic text parsing and more complex for making customized message
-text_extraction_model = ChatNebius(model="Qwen/Qwen3-30B-A3B-Instruct-2507")
-title_extraction_model = ChatNebius(model="Qwen/Qwen3-30B-A3B-Instruct-2507")
-message_model = ChatNebius(model="deepseek-ai/DeepSeek-V3.2-fast")
 
 # Open example messages and save results locally
 with open('example_messages.txt') as f:
     templates = [msg.strip() for msg in f.read().split("---") if msg.strip()]
 example_templates = "\n\n---\n\n".join(templates)
+
+# Define where to store API keys
+CONFIG_PATH = Path.home() / ".config" / "tmessage" / ".env"
+
+def setup_api_keys():
+    if not CONFIG_PATH.exists():
+        console.print("[bold]First time setup — enter your API keys:[/bold]")
+        nebius_key = typer.prompt("Nebius API key")
+        tavily_key = typer.prompt("Tavily API key")
+        CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        CONFIG_PATH.write_text(f"NEBIUS_API_KEY={nebius_key}\nTAVILY_API_KEY={tavily_key}\n")
+        console.print("[bold green]Keys saved![/bold green]")
+    
+    load_dotenv(CONFIG_PATH)
 
 def print_search_results(results: dict) -> None:
     for r in results['results']:
@@ -41,13 +52,6 @@ def print_search_results(results: dict) -> None:
                 border_style="yellow",
             )
         )
-
-def require_env(name: str, instructions: str) -> None:
-    if os.getenv(name):
-        return
-    console.print(f"[bold red]Missing {name}[/bold red]")
-    console.print(instructions)
-    raise typer.Exit(code=1)
 
 def message_text(message: Any) -> str:
     """Extract streamed text from a LangChain message or message chunk."""
@@ -65,6 +69,8 @@ def message_text(message: Any) -> str:
     return ""
 
 def extract_info_from_description(description: Annotated[str, typer.Argument(help="Pasted job description,title, and company text, if available")]) -> dict:
+    # use faster/cheaper models for basic text parsing and more complex for making customized message
+    text_extraction_model = ChatNebius(model="Qwen/Qwen3-30B-A3B-Instruct-2507")
     console.print("\n[bold yellow]Extracting person info...[/bold yellow]")
 
 
@@ -123,6 +129,7 @@ def search_relevant_resources(relevant_title: str, company_name: str) -> Any:
 
 # Takes in a unstructured title -> And extracts out only the relevant bits. 
 def title_extraction(title: str) -> str:
+    title_extraction_model = ChatNebius(model="Qwen/Qwen3-30B-A3B-Instruct-2507")
     console.print("\n[bold yellow]Extracting relevant title bits...[/bold yellow]")
 
 
@@ -142,7 +149,7 @@ def title_extraction(title: str) -> str:
     return message_text(response)
 
 def create_message(name: str, company_name: str, job_title: str, key_facts_text: list[str], persona_text: list[str], results_text) -> str:
-
+    message_model = ChatNebius(model="deepseek-ai/DeepSeek-V3.2-fast")
     console.print("\n[bold yellow]Generating Message...[/bold yellow]")
 
 
@@ -214,14 +221,7 @@ def create_message(name: str, company_name: str, job_title: str, key_facts_text:
 def main(name: Annotated[str, typer.Argument(help="Person's first and last name")], 
          description: Annotated[str, typer.Argument(help="Pasted job description,title, and company text, if available")]) -> None:
 
-    require_env(
-        "TAVILY_API_KEY",
-        "Create one at https://app.tavily.com, then run: export TAVILY_API_KEY='tvly-...'",
-    )
-    require_env(
-        "NEBIUS_API_KEY",
-        "Create one at https://tokenfactory.nebius.com, then run: export NEBIUS_API_KEY='...'",
-    )
+    setup_api_keys()
 
     parsed_description = extract_info_from_description(description)
 

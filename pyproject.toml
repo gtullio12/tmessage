@@ -1,0 +1,13 @@
+[project]
+name = "tmessage"
+version = "0.1.0"
+dynamic = ["dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = "requirements.txt"}
+
+[tool.setuptools]
+py-modules = ["search"]
+
+[project.scripts]
+tmessage = "search:app"

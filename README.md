@@ -18,8 +18,8 @@ A CLI tool that generates personalized LinkedIn outreach messages using AI. Buil
 ### Install via Homebrew
 
 ```bash
-brew tap gtullio12/tmessage
-brew install tmessage
+brew install pipx
+pipx install tmessage-cli
 ```
 
 ### First run

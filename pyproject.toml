@@ -7,7 +7,7 @@ dynamic = ["dependencies"]
 dependencies = {file = "requirements.txt"}
 
 [tool.setuptools]
-py-modules = ["search"]
+py-modules = ["tmessage"]
 
 [project.scripts]
-tmessage = "search:app"
+tmessage = "tmessage:app"

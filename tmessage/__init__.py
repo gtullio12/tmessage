@@ -152,8 +152,6 @@ def title_extraction(title: str) -> str:
 
 def create_message(name: str, company_name: str, job_title: str, key_facts_text: list[str], persona_text: list[str], results_text) -> str:
     message_model = ChatNebius(model="meta-llama/Llama-3.3-70B-Instruct")
-    console.print("\n[bold yellow]Generating Message...[/bold yellow]")
-
 
     CREATE_MESSAGE_PROMPT=f"""
     Please write an outbound LinkedIn message. This is the very first message to someone
@@ -288,27 +286,22 @@ def main() -> None:
                     Panel.fit(parsed_description["job_title"], title="Title", border_style="cyan"),
                     ])
                 )
-        console.rule("[bold blue]Generating Message")
-
         relevant_title = title_extraction(parsed_description['job_title'])
 
         relevant_resources = search_relevant_resources(parsed_description['search_query'], relevant_title)
         print_search_results(relevant_resources)
 
-        message = create_message(name, parsed_description['company_name'], parsed_description['job_title'], 
-                                 parsed_description['job_description']['key_facts'], parsed_description['job_description']['persona_inference'], relevant_resources)
 
-
-        console.print('\n\nEvaluating Message...')
+        console.print('\n\nGenerating and Evaluating Message...')
 
         for _ in range(EVAL_LOOP_RETRIES):
-            evaluator = message_evaluation_check(message, parsed_description['job_description']['key_facts'], parsed_description['job_description']['persona_inference'], relevant_resources)
-
-            if evaluator == True:
-                break
-            console.print('Regenerating message...')
             message = create_message(name, parsed_description['company_name'], parsed_description['job_title'], 
                                  parsed_description['job_description']['key_facts'], parsed_description['job_description']['persona_inference'], relevant_resources)
+            evaluator = message_evaluation_check(message, parsed_description['job_description']['key_facts'], parsed_description['job_description']['persona_inference'], relevant_resources)
+
+            if evaluator:
+                break
+            console.print('Regenerating message...')
 
         else:
             console.print('[bold red]Evaluator Loop Retries Exhausted.[/bold red]')

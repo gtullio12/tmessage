@@ -39,19 +39,19 @@ def setup_api_keys():
         CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
         CONFIG_PATH.write_text(f"NEBIUS_API_KEY={nebius_key}\nTAVILY_API_KEY={tavily_key}\n")
         console.print("[bold green]Keys saved![/bold green]")
-    
+
     load_dotenv(CONFIG_PATH)
 
 def print_search_results(results: dict) -> None:
     for r in results['results']:
         content = f"{r['url']}\n\n{r['content']}"
         console.print(
-            Panel(
-                Text(content),
-                title=f"[bold yellow]{r['title']}[/bold yellow]",
-                border_style="yellow",
-            )
-        )
+                Panel(
+                    Text(content),
+                    title=f"[bold yellow]{r['title']}[/bold yellow]",
+                    border_style="yellow",
+                    )
+                )
 
 def message_text(message: Any) -> str:
     """Extract streamed text from a LangChain message or message chunk."""
@@ -84,6 +84,8 @@ def extract_info_from_description(description: Annotated[str, typer.Argument(hel
     persona_inference which is a list of strings of how this person communicates/operates
     (hands-on, technical, builds from scratch, decision maker), don't assume for this one,
     if you can't find something then return an empty list. Respond with ONLY valid JSON
+
+    Also return a "search_query" field: a short, disambiguated search query (under 10 words) that could be used to find recent news about this specific company. Include enough context to distinguish it from other companies with similar names (e.g. "Greenlight fintech kids finance app" not just "Greenlight").
     """
 
     response = text_extraction_model.invoke([
@@ -108,7 +110,7 @@ def extract_info_from_description(description: Annotated[str, typer.Argument(hel
         raise typer.Exit(code=1)
 
 
-def search_relevant_resources(relevant_title: str, company_name: str) -> Any:
+def search_relevant_resources(search_query, relevant_title) -> Any:
     today = datetime.now()
     one_year_ago = today - timedelta(days=365)
 
@@ -121,7 +123,7 @@ def search_relevant_resources(relevant_title: str, company_name: str) -> Any:
             start_date= one_year_ago.strftime("%Y-%m-%d"),
             end_date= today.strftime("%Y-%m-%d"))
 
-    result = title_specific_search.invoke(f"{company_name} {relevant_title}")
+    result = title_specific_search.invoke(f"{search_query} {relevant_title}")
     if (len(result['results']) == 0):
         console.print("\n[bold red]0 Search Results Found[/bold red]")
     return result
@@ -149,7 +151,7 @@ def title_extraction(title: str) -> str:
     return message_text(response)
 
 def create_message(name: str, company_name: str, job_title: str, key_facts_text: list[str], persona_text: list[str], results_text) -> str:
-    message_model = ChatNebius(model="deepseek-ai/DeepSeek-V3.2-fast")
+    message_model = ChatNebius(model="meta-llama/Llama-3.3-70B-Instruct")
     console.print("\n[bold yellow]Generating Message...[/bold yellow]")
 
 
@@ -160,12 +162,12 @@ def create_message(name: str, company_name: str, job_title: str, key_facts_text:
 
     Match this tone and style exactly: 
     {example_templates}
-    
+
     I will give you: the person's name, company name, job title, key_facts (concrete
     responsibilities/activities about this person), persona_inference (how this person
     communicates/operates — may be an empty list if nothing was confidently inferred),
     and role-specific search results about the company.
-    
+
     Steps to follow:
     1. Review each search result. Only use a result if it is clearly relevant to this
        specific person's role and part of the organization. If a result is about a
@@ -181,31 +183,31 @@ def create_message(name: str, company_name: str, job_title: str, key_facts_text:
        company research is available rather than inventing personal detail.
     5. Do not state anything as fact unless it's supported by the provided key_facts,
        persona_inference, or search results.
-    
+
     Output format: respond with ONLY valid JSON, no markdown, no preamble, in this shape:
     {{
       "message": "the LinkedIn message text",
       "sources_used": ["url1", "url2"]
     }}
-    
+
     The message should be under 100 words, written in a natural, conversational tone —
     not salesy, no exclamation points, no buzzwords like "synergy" or "leverage." End with
     a low-pressure ask (e.g., open to a quick chat) rather than a hard pitch.
     """
 
     user_content = json.dumps({
-    "name": name,
-    "company_name": company_name,
-    "job_title": job_title,
-    "key_facts": key_facts_text,
-    "persona_inference": persona_text,
-    "search_results": results_text,
-    })
-    
+        "name": name,
+        "company_name": company_name,
+        "job_title": job_title,
+        "key_facts": key_facts_text,
+        "persona_inference": persona_text,
+        "search_results": results_text,
+        })
+
     response = message_model.invoke([
         {"role": "system", "content": CREATE_MESSAGE_PROMPT},
         {"role": "user", "content": user_content},
-    ])
+        ])
 
     try:
         response = json.loads(message_text(response))
@@ -216,11 +218,61 @@ def create_message(name: str, company_name: str, job_title: str, key_facts_text:
         raise typer.Exit(code=1)
 
 
+def message_evaluation_check(msg: str, key_facts: list[str], persona: list[str], search_results) -> bool:
+    message_evaluator = ChatNebius(model="Qwen/Qwen3-30B-A3B-Instruct-2507")
+
+    EVALUATE_PROMPT = f"""
+    You are evaluating an outbound LinkedIn message written by a Tavily sales rep.
+
+    IMPORTANT: Tavily is the company sending this message. Any mention of Tavily by name is ALWAYS valid and should NEVER be flagged as unsupported. Do not penalize the message for mentioning Tavily.
+    
+    Evaluate against these criteria:
+    1. Under 100 words
+    2. No buzzwords (synergy, leverage, etc.)
+    3. Ends with a low-pressure ask
+    4. Specific technical claims about the prospect's stack or architecture (e.g. "you use RAG", "you need a retrieval layer") must be supported by context. Generic statements like "Tavily could support your AI work" are always acceptable — that is the pitch, not a factual claim.
+    5. If no clear use case is evident, the message is generic rather than fabricating a specific connection — this is acceptable and should pass
+    6. Sounds casual and matches this tone: {example_templates}
+
+    Note: the job title and company name are always provided directly by the user and are always considered supported facts. Only flag claims that go beyond what is in key_facts, persona_inference, and search_results.
+
+    Context provided:
+    key_facts: {key_facts}
+    persona_inference: {persona}
+    search_results: {search_results}
+
+    Message to evaluate:
+    {msg}
+
+    Respond with ONLY valid JSON:
+    {{{{
+      "passed": true or false,
+      "reason": "brief explanation if failed, null if passed"
+    }}}}
+    """
+    user_content = json.dumps({
+        "message": msg,
+        })
+
+    res = message_evaluator.invoke([
+            {"role": "system", "content": EVALUATE_PROMPT},
+            {"role": "user", "content": user_content}
+            ])
+    result = json.loads(message_text(res))
+
+    if (result['passed'] == False):
+        console.print(f"Message was rejected by evaluation loop. Reason: {result['reason']}\n Generated Message: {msg}")
+        return False
+
+    return True 
+
 
 @app.command()
 def main() -> None:
 
     setup_api_keys()
+
+    EVAL_LOOP_RETRIES = 3
 
     while True:
 
@@ -240,13 +292,29 @@ def main() -> None:
 
         relevant_title = title_extraction(parsed_description['job_title'])
 
-        relevant_resources = search_relevant_resources(relevant_title, parsed_description['company_name'])
+        relevant_resources = search_relevant_resources(parsed_description['search_query'], relevant_title)
         print_search_results(relevant_resources)
 
         message = create_message(name, parsed_description['company_name'], parsed_description['job_title'], 
                                  parsed_description['job_description']['key_facts'], parsed_description['job_description']['persona_inference'], relevant_resources)
-        console.print(message['message'], markup=False)
 
+
+        console.print('\n\nEvaluating Message...')
+
+        for _ in range(EVAL_LOOP_RETRIES):
+            evaluator = message_evaluation_check(message, parsed_description['job_description']['key_facts'], parsed_description['job_description']['persona_inference'], relevant_resources)
+
+            if evaluator == True:
+                break
+            console.print('Regenerating message...')
+            message = create_message(name, parsed_description['company_name'], parsed_description['job_title'], 
+                                 parsed_description['job_description']['key_facts'], parsed_description['job_description']['persona_inference'], relevant_resources)
+
+        else:
+            console.print('[bold red]Evaluator Loop Retries Exhausted.[/bold red]')
+            continue
+
+        console.print(message['message'], markup=False, style="green")
         another = typer.confirm("Generate another message?")
         if not another:
             break

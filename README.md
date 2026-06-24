@@ -2,6 +2,9 @@
 
 A CLI tool that generates personalized LinkedIn outreach messages using AI. Built for sales and account teams who need to send high-quality, contextually relevant messages at scale — without spending 10 minutes researching each person manually.
 
+## Write-up
+[How I built this →](https://gtullio12.github.io/tmessage/tmessage.html)
+
 ## Demo
 
 > Loom walkthrough link here

@@ -67,7 +67,7 @@ LinkedIn description paste
           │
           ▼
 ┌─────────────────────┐
-│  Stage 3: Message   │  DeepSeek-V3.2
+│  Stage 3: Message   │  Llama-3.3-70B
 │  generation         │
 └─────────────────────┘
 ```
@@ -91,7 +91,7 @@ The job title is first distilled to its most AI/tech-relevant component (e.g. "V
 
 ### Stage 3 — Message generation
 
-A larger, higher-quality model (DeepSeek-V3.2-fast) writes the final message using:
+A larger, higher-quality model (Llama-3.3-70B) writes the final message using:
 
 - Structured person context from Stage 1
 - Tavily search results from Stage 2

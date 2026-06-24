@@ -18,8 +18,6 @@ from rich.text import Text
 from rich.columns import Columns
 from rich.pretty import pprint
 
-load_dotenv()
-
 app = typer.Typer(add_completion=False)
 console = Console()
 
@@ -162,8 +160,9 @@ def title_extraction(title: str) -> str:
         {"role": "system", "content": TITLE_RELEVANCE_PROMPT},
         {"role": "user", "content": title}
         ])
-    pprint(response.content)
-    return message_text(response)
+    res = message_text(response)
+    console.log(res)
+    return res
 
 def create_message(name: str, company_name: str, job_title: str, key_facts_text: list[str], persona_text: list[str], results_text) -> str:
     message_model = ChatNebius(model="meta-llama/Llama-3.3-70B-Instruct")
@@ -306,8 +305,7 @@ def main() -> None:
         relevant_resources = search_relevant_resources(parsed_description['search_query'], relevant_title)
         print_search_results(relevant_resources)
 
-
-        console.print('\n\nGenerating and Evaluating Message...')
+        console.rule("[bold blue]Generating and Evaluating Message")
 
         for _ in range(EVAL_LOOP_RETRIES):
             message = create_message(name, parsed_description['company_name'], parsed_description['job_title'], 

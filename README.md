@@ -7,9 +7,6 @@ A CLI tool that generates personalized LinkedIn outreach messages using AI. Buil
 
 ## Demo
 <a href="https://www.loom.com/share/19d8f78c2188438eb29c26b0dc59ecb7" target="_blank">Watch demo →</a>
-
-https://www.loom.com/share/19d8f78c2188438eb29c26b0dc59ecb7
-
 ---
 
 ## Installation

@@ -83,7 +83,22 @@ def extract_info_from_description(description: Annotated[str, typer.Argument(hel
     concrete responsibility or activity, not a characterization of how the person works — and
     persona_inference which is a list of strings of how this person communicates/operates
     (hands-on, technical, builds from scratch, decision maker), don't assume for this one,
-    if you can't find something then return an empty list. Respond with ONLY valid JSON
+    if you can't find something then return an empty list. 
+
+    Return ONLY valid JSON in this exact shape:
+    {{
+      "company_name": "...",
+      "job_title": "...",
+      "job_description": {
+        "key_facts": [],
+        "persona_inference": []
+      },
+      "search_query": "..."
+    }}
+
+
+
+    If no job description body is present and only a title and company are provided, return empty lists for both key_facts and persona_inference — do not infer or generate responsibilities from the title alone.
 
     Also return a "search_query" field: a short, disambiguated search query (under 10 words) that could be used to find recent news about this specific company. Include enough context to distinguish it from other companies with similar names (e.g. "Greenlight fintech kids finance app" not just "Greenlight").
     """

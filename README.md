@@ -128,8 +128,9 @@ The model follows explicit rules: only reference facts supported by the provided
 
 ```
 tmessage/
-├── tmessage.py          # main pipeline and CLI entrypoint
-├── example_messages.txt # message style templates
+├── tmessage/
+│   ├── __init__.py          # main pipeline and CLI entrypoint
+│   └── example_messages.txt # message style templates
 ├── pyproject.toml
 ├── requirements.txt
 └── README.md
